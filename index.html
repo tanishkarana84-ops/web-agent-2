@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Web + PDF AI Agent</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    .upload-box { border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    .upload-box input { display: none; }
+    .upload-btn { padding: 8px 16px; background: #fff; border: 1px solid #185FA5; color: #185FA5; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .upload-btn:hover { background: #185FA5; color: white; }
+    #upload-status { margin-top: 10px; font-size: 14px; color: green; }
+    .ask-box { display: flex; gap: 10px; }
+    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
+    .ask-btn { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #185FA5; color: white; border: none; border-radius: 6px; }
+    .ask-btn:hover { opacity: 0.85; }
+    #answer { margin-top: 20px; background: #f4f4f4; padding: 15px; border-radius: 8px; white-space: pre-wrap; line-height: 1.6; min-height: 50px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+    .web-tag { background: #e6f1fb; color: #185FA5; }
+    .pdf-tag { background: #eaf3de; color: #3B6D11; }
+  </style>
+</head>
+<body>
+  <h1>🌐 Web + PDF AI Agent</h1>
+
+  <div class="upload-box">
+    <p>Upload a PDF (optional) — Agent will search both PDF and Web</p>
+    <label>
+      <input type="file" id="pdfFile" accept=".pdf" onchange="uploadPDF()">
+      <span class="upload-btn">📄 Choose PDF</span>
+    </label>
+    <div id="upload-status"></div>
+  </div>
+
+  <div class="ask-box">
+    <input type="text" id="q" placeholder="Ask anything..." />
+    <button class="ask-btn" onclick="ask()">Ask</button>
+  </div>
+
+  <div style="margin-top: 10px;">
+    <span class="tag web-tag">🌐 Web Search</span>
+    <span class="tag pdf-tag" id="pdf-tag" style="display:none;">📄 PDF Loaded</span>
+  </div>
+
+  <div id="answer">Answer will appear here...</div>
+
+  <script>
+    async function uploadPDF() {
+      const file = document.getElementById('pdfFile').files[0];
+      if (!file) return;
+
+      document.getElementById('upload-status').textContent = 'Uploading...';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      document.getElementById('upload-status').textContent = data.message;
+      document.getElementById('pdf-tag').style.display = 'inline-block';
+    }
+
+    async function ask() {
+      const q = document.getElementById('q').value;
+      if (!q) return;
+      document.getElementById('answer').textContent = 'Searching web and PDF...';
+
+      const res = await fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q })
+      });
+      const data = await res.json();
+      document.getElementById('answer').textContent = data.answer;
+    }
+  </script>
+</body>
+</html>
